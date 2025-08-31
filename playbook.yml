@@ -1,0 +1,26 @@
+- name: Déployer MySQL sur la VM
+  hosts: myhosts
+  become: true
+  tasks:
+    - name: Assurer que Docker est installé
+      package:
+        name: docker-ce
+        state: present
+
+    - name: Démarrer le service Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Lancer le conteneur MySQL
+      community.docker.docker_container:
+        name: mysql_db
+        image: mysql:8
+        state: started
+        restart_policy: always
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - "3306:3306"
+
