@@ -2,6 +2,7 @@
   hosts: myhosts
   become: true
   tasks:
+
     - name: Assurer que Docker est installé
       package:
         name: docker-ce
@@ -13,14 +14,19 @@
         state: started
         enabled: true
 
-    - name: Lancer le conteneur MySQL
+    - name: Lancer le conteneur MySQL avec volume temporaire
       community.docker.docker_container:
         name: mysql_db
         image: mysql:8
         state: started
-        restart_policy: always
+        restart_policy: unless-stopped
         env:
           MYSQL_ROOT_PASSWORD: root
-        ports:
+        tmpfs:
+          - /var/lib/mysql
+        published_ports:
           - "3306:3306"
-
+        healthcheck:
+          test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+          interval: 10s
+          retries: 5
